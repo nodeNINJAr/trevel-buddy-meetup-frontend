@@ -3,6 +3,7 @@ import "./globals.css";
 import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
+import Navbar from "@/components/Navbar";
 
 
 
@@ -31,8 +32,9 @@ export default function RootLayout({
             />
           <AuthProvider>
             {/* navbar */}
-            {children}
-           <Toaster />
+            <Navbar/>
+             {children}
+            <Toaster />
           </AuthProvider>
           
       </body>

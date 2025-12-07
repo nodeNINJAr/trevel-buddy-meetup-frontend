@@ -52,3 +52,16 @@ export interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
 }
+// 
+// ---------- Types ----------
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  bio?: string;
+  currentLocation?: string;
+  travelInterests?: string[];
+  visitedCountries?: string[];
+  verified?: boolean;
+}

@@ -44,16 +44,24 @@ export interface TravelPlan {
 
 
 export interface Review {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
+  id: number;
+  fromUserId: number;
+  toUserId: number;
   fromUser?: User;
+  toUser?:User;
   rating: number;
   comment: string;
   travelPlanId?: string;
   createdAt: string;
   updatedAt?: string;
+  status: ReviewStatus
 }
+export enum ReviewStatus {
+     PENDING = "PENDING",
+     APPROVED = "APPROVED",
+     REJECT= "REJECT"
+}
+
 
 export interface AuthContextType {
   user: User | null;
@@ -62,16 +70,4 @@ export interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
 }
-// 
-// ---------- Types ----------
-// export interface UserProfile {
-//   id: string;
-//   name: string;
-//   email: string;
-//   image?: string;
-//   bio?: string;
-//   currentLocation?: string;
-//   travelInterests?: string[];
-//   visitedCountries?: string[];
-//   verified?: boolean;
-// }
+

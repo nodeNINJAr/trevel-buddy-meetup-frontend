@@ -4,6 +4,7 @@ import Script from "next/script";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import Navbar from "@/components/Navbar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 
 
@@ -30,12 +31,15 @@ export default function RootLayout({
               data-debug="true"
               data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
             />
-          <AuthProvider>
-            {/* navbar */}
-            <Navbar/>
-             {children}
-            <Toaster />
-          </AuthProvider>
+
+         <ThemeProvider>  
+            <AuthProvider>
+              {/* navbar */}
+              <Navbar/>
+              {children}
+              <Toaster />
+            </AuthProvider>
+         </ThemeProvider>
           
       </body>
     </html>

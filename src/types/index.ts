@@ -1,11 +1,11 @@
 export type UserRole = 'user' | 'admin';
 
-export interface User {
+export interface UserProfile {
   id: string;
   email: string;
   fullName: string;
   role: UserRole;
-  profileImage?: string;
+  avatarUrl?: string;
   bio?: string;
   travelInterests?: string[];
   visitedCountries?: string[];
@@ -15,9 +15,17 @@ export interface User {
   verified?: boolean;
 }
 
+export interface User {
+  id: number;
+  userName: string;
+  emailVerified?: boolean;
+  profile?: UserProfile;
+  image?: string;
+}
+
 export interface TravelPlan {
   id: string;
-  userId: string;
+  userId: number;
   user?: User;
   destination: string;
   country: string;
@@ -25,13 +33,14 @@ export interface TravelPlan {
   endDate: string;
   budgetMin: number;
   budgetMax: number;
-  travelType: 'Solo' | 'Family' | 'Friends' | 'Couple';
-  description: string;
+  travelType: string;
   interests: string[];
-  status: 'active' | 'completed' | 'cancelled';
-  participants?: string[];
+  description: string;
+  participants?: User[];
+  status: 'active' | 'inactive';
   createdAt: string;
 }
+
 
 export interface Review {
   id: string;
@@ -54,14 +63,14 @@ export interface AuthContextType {
 }
 // 
 // ---------- Types ----------
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  image?: string;
-  bio?: string;
-  currentLocation?: string;
-  travelInterests?: string[];
-  visitedCountries?: string[];
-  verified?: boolean;
-}
+// export interface UserProfile {
+//   id: string;
+//   name: string;
+//   email: string;
+//   image?: string;
+//   bio?: string;
+//   currentLocation?: string;
+//   travelInterests?: string[];
+//   visitedCountries?: string[];
+//   verified?: boolean;
+// }

@@ -1,8 +1,7 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,17 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
+import {
+  MapPin,
+  Calendar,
+  DollarSign,
   Users,
   Star,
   CheckCircle2,
   ArrowLeft,
-  UserPlus
+  UserPlus,
+  X
 } from 'lucide-react';
-import { mockTravelPlans } from '@/lib/mockData';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -31,48 +30,93 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
+import { TravelPlan, User } from '@/types';
 
+
+// 
 export default function TravelPlanDetailsPage() {
   const params = useParams();
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user: authUser } = useAuth(); // Keep useAuth
+  const [user, setUser] = useState<User | null>(null); // Full profile from API
+  const [plan, setPlan] = useState<TravelPlan | null>(null);
+  const [loading, setLoading] = useState(true);
   const [requestMessage, setRequestMessage] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-  // Find the travel plan
-  const plan = mockTravelPlans.find(p => p.id === params.id);
 
-  const handleJoinRequest = () => {
+  // Fetch logged-in user profile using userId from useAuth
+  useEffect(() => {
+    if (!authUser?.id) return;
+    const fetchUserProfile = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/user/${authUser.id}`, {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch profile');
+        setUser(data.data); // store full user profile
+      } catch (err: any) {
+        console.error(err);
+        toast.error(err.message || 'Failed to fetch profile');
+      }
+    };
+    fetchUserProfile();
+  }, [authUser]);
+
+  // Fetch travel plan
+  useEffect(() => {
+    if (!params.id) return;
+    const fetchPlan = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/${params.id}`, {
+          credentials: 'include',
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch plan');
+        setPlan(data.data);
+      } catch (err: any) {
+        console.error(err);
+        toast.error(err.message || 'Something went wrong');
+        router.push('/travel-plans');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlan();
+  }, [params.id, router]);
+
+  const handleJoinRequest = async () => {
     if (!requestMessage.trim()) {
       toast.error('Please write a message');
       return;
     }
-    
-    toast.success('Join request sent successfully!');
-    setIsDialogOpen(false);
-    setRequestMessage('');
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/join/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ message: requestMessage }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send request');
+      toast.success('Join request sent successfully!');
+      setIsDialogOpen(false);
+      setRequestMessage('');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Something went wrong');
+    }
   };
 
-  if (!plan) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Travel plan not found</p>
-            <Button asChild className="mt-4">
-              <Link href="/travel-plans">Back to Plans</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (loading) return <p className="text-center py-12">Loading...</p>;
+  if (!plan) return null;
 
-  const isOwnPlan = user?.id === plan.userId;
+  const isOwnPlan = authUser?.id === plan.userId;
 
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
         <Button variant="ghost" asChild className="mb-6">
           <Link href="/travel-plans">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -83,7 +127,6 @@ export default function TravelPlanDetailsPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Header Card */}
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-start mb-2">
@@ -99,7 +142,6 @@ export default function TravelPlanDetailsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Key Details */}
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="flex items-start gap-3">
                     <div className="bg-primary/10 p-2 rounded-lg">
@@ -108,11 +150,11 @@ export default function TravelPlanDetailsPage() {
                     <div>
                       <p className="text-sm text-muted-foreground">Dates</p>
                       <p className="font-medium text-sm">
-                        {new Date(plan.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(plan.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {new Date(plan.startDate).toLocaleDateString()} - {new Date(plan.endDate).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
                     <div className="bg-primary/10 p-2 rounded-lg">
                       <DollarSign className="h-5 w-5 text-primary" />
@@ -122,7 +164,7 @@ export default function TravelPlanDetailsPage() {
                       <p className="font-medium text-sm">${plan.budgetMin} - ${plan.budgetMax}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start gap-3">
                     <div className="bg-primary/10 p-2 rounded-lg">
                       <Users className="h-5 w-5 text-primary" />
@@ -136,13 +178,11 @@ export default function TravelPlanDetailsPage() {
 
                 <Separator />
 
-                {/* Description */}
                 <div>
                   <h3 className="font-semibold text-lg mb-3">About This Trip</h3>
                   <p className="text-muted-foreground leading-relaxed">{plan.description}</p>
                 </div>
 
-                {/* Interests */}
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Activities & Interests</h3>
                   <div className="flex flex-wrap gap-2">
@@ -153,41 +193,10 @@ export default function TravelPlanDetailsPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* What to Expect Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>What to Expect</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Shared Experiences</p>
-                    <p className="text-sm text-muted-foreground">Explore destinations together and create lasting memories</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Cost Sharing</p>
-                    <p className="text-sm text-muted-foreground">Split accommodation and transportation costs</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                  <div>
-                    <p className="font-medium">Safety in Numbers</p>
-                    <p className="text-sm text-muted-foreground">Travel with trusted companions for added security</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Host Card */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Hosted by</CardTitle>
@@ -196,34 +205,30 @@ export default function TravelPlanDetailsPage() {
                 <Link href={`/profile/${plan.user?.id}`} className="block">
                   <div className="flex items-center gap-4 mb-4 group">
                     <Avatar className="w-16 h-16">
-                      <AvatarImage src={plan.user?.profileImage} alt={plan.user?.fullName} />
-                      <AvatarFallback>{plan.user?.fullName.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={plan.user?.profile?.avatarUrl || plan.user?.image} alt={plan.user?.profile?.fullName || plan.user?.userName} />
+                      <AvatarFallback>{plan.user?.profile?.fullName?.charAt(0) || plan.user?.userName?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h3 className="font-semibold group-hover:text-primary transition-colors">{plan.user?.fullName}</h3>
+                      <h3 className="font-semibold group-hover:text-primary transition-colors">{plan.user?.profile?.fullName || plan.user?.userName}</h3>
                       <div className="flex items-center gap-1 text-sm">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{plan.user?.rating}</span>
-                        <span className="text-muted-foreground">({plan.user?.reviewCount} reviews)</span>
+                        <span className="font-medium">{plan.user?.profile?.rating || 0}</span>
+                        <span className="text-muted-foreground">({plan.user?.profile?.reviewCount || 0} reviews)</span>
                       </div>
-                      {plan.user?.verified && (
+                      {plan.user?.profile?.verified ? (
                         <Badge variant="secondary" className="text-xs mt-1">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          <X className="h-3 w-3 mr-1" />
+                          Not Verified
                         </Badge>
                       )}
                     </div>
                   </div>
                 </Link>
-                
-                <div className="space-y-2 text-sm mb-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{plan.user?.currentLocation}</span>
-                  </div>
-                </div>
-
-                <p className="text-sm text-muted-foreground mb-4">{plan.user?.bio}</p>
 
                 {!isOwnPlan && user ? (
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -237,12 +242,12 @@ export default function TravelPlanDetailsPage() {
                       <DialogHeader>
                         <DialogTitle>Request to Join Trip</DialogTitle>
                         <DialogDescription>
-                          Send a message to {plan.user?.fullName} explaining why you'd be a great travel companion
+                          Send a message to {plan.user?.profile?.fullName || plan.user?.userName} explaining why you'd be a great travel companion
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <Textarea
-                          placeholder="Hi! I'm interested in joining your trip to {plan.destination}. I love..."
+                          placeholder={`Hi! I'm ${user?.profile?.fullName}. I would love to join your trip to ${plan.destination}. My interests: ${user?.profile?.travelInterests?.join(', ')}`}
                           value={requestMessage}
                           onChange={(e) => setRequestMessage(e.target.value)}
                           rows={5}
@@ -260,20 +265,6 @@ export default function TravelPlanDetailsPage() {
                 ) : (
                   <Button disabled className="w-full">Your Plan</Button>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Safety Tips Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Safety Tips</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>• Meet in public places first</p>
-                <p>• Share your itinerary with friends/family</p>
-                <p>• Verify the traveler's profile and reviews</p>
-                <p>• Trust your instincts</p>
-                <p>• Keep emergency contacts handy</p>
               </CardContent>
             </Card>
           </div>

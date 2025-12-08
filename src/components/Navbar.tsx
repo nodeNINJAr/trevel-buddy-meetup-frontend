@@ -19,6 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Move these outside of Navbar
 interface LinksProps {
@@ -120,6 +121,9 @@ export default function Navbar() {
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
               {/* theme toggle */}
+                <div data-tour="theme">
+                  <ThemeToggle />
+                </div>
              {!user ? (
               <>
                 <Button variant="ghost" asChild>
@@ -222,6 +226,7 @@ export default function Navbar() {
                 <div className="flex items-center justify-between pt-4 border-t">
                   <span className="text-sm text-muted-foreground">Theme</span>
                   {/* theme toggle */}
+                   <ThemeToggle/>
                  </div>
 
                 <div className="flex flex-col gap-3 pt-4 border-t mt-auto">

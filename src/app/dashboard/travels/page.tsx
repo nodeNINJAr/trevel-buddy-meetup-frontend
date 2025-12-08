@@ -20,21 +20,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { TravelPlan } from '@/types';
 
-interface TravelPlan {
-  id: string;
-  destination: string;
-  country: string;
-  startDate: string;
-  endDate: string;
-  budgetMin: number;
-  budgetMax: number;
-  travelType: string;
-  description: string;
-  interests: string[];
-  status: string;
-  userId: string;
-}
+
 
 export default function TravelPlansPage() {
   const { user, isLoading } = useAuth();
@@ -62,9 +50,13 @@ export default function TravelPlansPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch plans');
         setPlans(data.plans);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        toast.error(err.message || 'Failed to fetch travel plans');
+        if (err instanceof Error) {
+          toast.error(err.message || 'Failed to fetch travel plans');
+        } else {
+          toast.error('Failed to fetch travel plans');
+        }
       } finally {
         setLoadingPlans(false);
       }
@@ -73,7 +65,7 @@ export default function TravelPlansPage() {
     fetchPlans();
   }, [user]);
 
-  const handleDelete = async (planId: string) => {
+  const handleDelete = async (planId: number) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/${planId}`, {
         method: 'DELETE',
@@ -81,11 +73,15 @@ export default function TravelPlansPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to delete plan');
-      setPlans(plans.filter(p => p.id !== planId));
+      setPlans(plans.filter(p => p.id !== Number(planId)));
       toast.success('Travel plan deleted successfully');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      toast.error(err.message || 'Failed to delete plan');
+      if (err instanceof Error) {
+        toast.error(err.message || 'Failed to delete plan');
+      } else {
+        toast.error('Failed to delete plan');
+      }
     }
   };
 
@@ -114,7 +110,7 @@ export default function TravelPlansPage() {
           </Button>
         </div>
 
-        {plans.length > 0 ? (
+        {plans && plans?.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {plans.map(plan => (
               <Card key={plan.id} className="hover:shadow-lg transition-shadow">

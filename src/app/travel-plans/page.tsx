@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { TravelPlan } from '@/types';
 
 export default function TravelPlansPage() {
   const { user, isLoading } = useAuth();
@@ -160,7 +161,7 @@ export default function TravelPlansPage() {
         {/* Plans Grid */}
         {plans.length > 0 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map((plan: any) => (
+            {plans.map((plan: TravelPlan) => (
               <Card key={plan.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
@@ -192,7 +193,7 @@ export default function TravelPlansPage() {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(plan.id)}>
+                            <AlertDialogAction onClick={() => handleDelete(plan?.id)}>
                               Delete
                             </AlertDialogAction>
                           </AlertDialogFooter>

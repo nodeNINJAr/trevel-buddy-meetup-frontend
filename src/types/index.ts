@@ -1,10 +1,9 @@
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'USER' | 'ADMIN';
 
 export interface UserProfile {
-  id: string;
-  email: string;
+  id: number;
+  userId:number;
   fullName: string;
-  role: UserRole;
   avatarUrl?: string;
   bio?: string;
   travelInterests?: string[];
@@ -21,10 +20,12 @@ export interface User {
   emailVerified?: boolean;
   profile?: UserProfile;
   image?: string;
+  role: UserRole;
+  email: string;
 }
 
 export interface TravelPlan {
-  id: string;
+  id: number;
   userId: number;
   user?: User;
   destination: string;

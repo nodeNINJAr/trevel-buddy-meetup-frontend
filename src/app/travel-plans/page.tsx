@@ -29,9 +29,7 @@ export default function TravelPlansPage() {
   const [plans, setPlans] = useState([]);
   const [isPlansLoading, setIsPlansLoading] = useState(true);
 
-  // ----------------------------------------------
   // FETCH USER TRAVEL PLANS
-  // ----------------------------------------------
   const fetchTravelPlans = async () => {
     if (!user) return;
 
@@ -39,7 +37,7 @@ export default function TravelPlansPage() {
       setIsPlansLoading(true);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/mine`,
         {
           method: "GET",
           credentials: "include",
@@ -76,9 +74,7 @@ export default function TravelPlansPage() {
     }
   }, [user, isLoading, router]);
 
-  // ----------------------------------------------
   // DELETE PLAN
-  // ----------------------------------------------
   const handleDelete = async (planId: number) => {
     try {
       const res = await fetch(
@@ -104,9 +100,7 @@ export default function TravelPlansPage() {
     }
   };
 
-  // ----------------------------------------------
   // LOADING STATE
-  // ----------------------------------------------
   if (isLoading || isPlansLoading) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -116,10 +110,8 @@ export default function TravelPlansPage() {
   }
 
   if (!user) return null;
-
-  // ----------------------------------------------
+  
   // UI — TRAVEL PLANS GRID
-  // ----------------------------------------------
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -168,7 +169,7 @@ export default function ReviewsPage() {
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    <div className="text-2xl font-bold">{stats.approvedCount}</div>
+                    <div className="text-2xl font-bold">{stats.approvedReviews}</div>
                     <p className="text-xs text-muted-foreground">Published reviews</p>
                   </>
                 )}
@@ -185,7 +186,7 @@ export default function ReviewsPage() {
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    <div className="text-2xl font-bold">{stats.pendingCount}</div>
+                    <div className="text-2xl font-bold">{stats.pendingReviews}</div>
                     <p className="text-xs text-muted-foreground">Awaiting moderation</p>
                   </>
                 )}
@@ -202,7 +203,7 @@ export default function ReviewsPage() {
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>
-                    <div className="text-2xl font-bold">{stats.avgRating.toFixed(1)}</div>
+                    <div className="text-2xl font-bold">{stats?.avgRating?.toFixed(1)}</div>
                     <p className="text-xs text-muted-foreground">Out of 5 stars</p>
                   </>
                 )}

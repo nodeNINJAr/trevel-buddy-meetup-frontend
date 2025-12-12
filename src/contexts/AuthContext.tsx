@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     image:string
   ) => {
     setIsLoading(true);
-   console.log(email,password,userName,image);
     const res = await fetch(`${BASE_URL}/api/v1/user/register`, {
       method: "POST",
       credentials: "include",
@@ -71,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const data = await res.json();
-     console.log(data);
     if (res.ok) {
       setUser(data.user);
     } else {

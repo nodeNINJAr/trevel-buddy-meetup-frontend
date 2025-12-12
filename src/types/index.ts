@@ -38,7 +38,7 @@ export interface TravelPlan {
   interests: string[];
   description: string;
   participants?: User[];
-  status: 'active' | 'inactive';
+  status: 'ACTIVE' | 'INACTIVE'| "BLOCKED" | "COMPLETED" | "CANCELLED";
   createdAt: string;
 }
 

@@ -37,9 +37,10 @@ export interface TravelPlan {
   travelType: string;
   interests: string[];
   description: string;
-  participants?: User[];
   status: 'ACTIVE' | 'INACTIVE'| "BLOCKED" | "COMPLETED" | "CANCELLED";
   createdAt: string;
+  friendships: TravelFriendship[];
+  reviews: Review[];
 }
 
 
@@ -71,3 +72,28 @@ export interface AuthContextType {
   isLoading: boolean;
 }
 
+export interface TravelPlanResponse {
+  success: boolean;
+  message: string;
+  data: TravelPlan;
+}
+
+export interface TravelUser {
+  id: number;
+  userName: string;
+  email: string;
+  emailVerified: boolean;
+  passwordHash: string;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface TravelFriendship {
+  id: number;
+  tripId: number;
+  userId: number;
+  friendId: number;
+  message: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}

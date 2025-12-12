@@ -56,7 +56,7 @@ export default function LoginPage() {
       toast.success("Welcome back!");
 
       const redirect = searchParams.get("redirect");
-    //   router.push(redirect || "/dashboard");
+      router.push(redirect || "/dashboard");
     } catch (error) {
       toast.error("Login failed. Please check your credentials.");
     } finally {
@@ -65,12 +65,12 @@ export default function LoginPage() {
   };
 
   const handleDemoLogin = async () => {
-    setEmail("admin@travel.com");
-    setPassword("admin123");
+    setEmail("admin@gmail.com");
+    setPassword("12345678");
     setIsLoading(true);
 
     try {
-      await login("admin@travel.com", "admin123");
+      await login("admin@gmail.com", "12345678");
       toast.success("Logged in as Admin!");
       router.push("/dashboard");
     } catch (error) {

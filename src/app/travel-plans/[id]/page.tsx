@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
@@ -93,7 +94,7 @@ export default function TravelPlanDetailsPage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/join/${params.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/${params.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -131,7 +132,7 @@ export default function TravelPlanDetailsPage() {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-start mb-2">
-                  <Badge variant={plan.status === 'active' ? 'default' : 'secondary'}>
+                  <Badge variant={plan.status === 'ACTIVE' ? 'default' : 'secondary'}>
                     {plan.status}
                   </Badge>
                   <Badge variant="outline">{plan.travelType}</Badge>
@@ -172,7 +173,7 @@ export default function TravelPlanDetailsPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Participants</p>
-                      <p className="font-medium text-sm">{plan.participants?.length || 0} joined</p>
+                      <p className="font-medium text-sm">{plan.friendships?.length || 0} joined</p>
                     </div>
                   </div>
                 </div>
@@ -201,6 +202,7 @@ export default function TravelPlanDetailsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Hosted by</CardTitle>
+               
               </CardHeader>
               <CardContent>
                 <Link href={`/profile/${plan.user?.id}`} className="block">
@@ -231,6 +233,19 @@ export default function TravelPlanDetailsPage() {
                   </div>
                 </Link>
 
+                {isOwnPlan &&
+                     <>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => router.push(`/travel-plans/${params.id}/participants`)}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        View Participants
+                      </Button>
+                     </>
+                      }
+
                 {!isOwnPlan && user ? (
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
@@ -239,6 +254,7 @@ export default function TravelPlanDetailsPage() {
                         Request to Join
                       </Button>
                     </DialogTrigger>
+
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Request to Join Trip</DialogTitle>

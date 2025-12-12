@@ -94,7 +94,7 @@ export default function TravelPlanDetailsPage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/${params.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/join/${params.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -232,8 +232,6 @@ export default function TravelPlanDetailsPage() {
                     </div>
                   </div>
                 </Link>
-
-                {isOwnPlan &&
                      <>
                       <Button
                         variant="outline"
@@ -244,7 +242,6 @@ export default function TravelPlanDetailsPage() {
                         View Participants
                       </Button>
                      </>
-                      }
 
                 {!isOwnPlan && user ? (
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

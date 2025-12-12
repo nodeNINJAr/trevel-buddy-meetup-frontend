@@ -84,7 +84,7 @@ export default function Navbar() {
 
   if (isLoading) {
     return (
-      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl">
@@ -100,7 +100,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
 
@@ -138,15 +138,15 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.profileImage} alt={user.fullName} />
-                      <AvatarFallback>{user.fullName?.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={user.profile?.avatarUrl} alt={user.profile?.fullName} />
+                      <AvatarFallback>{user.profile?.fullName?.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-sm">{user.fullName}</p>
+                      <p className="font-medium text-sm">{user.profile?.fullName}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
@@ -181,11 +181,11 @@ export default function Navbar() {
                 {user && (
                   <div className="flex items-center gap-3 pb-4 border-b">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={user.profileImage} alt={user.fullName} />
-                      <AvatarFallback>{user.fullName?.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={user.profile?.avatarUrl} alt={user.profile?.fullName} />
+                      <AvatarFallback>{user?.profile?.fullName?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{user.fullName}</p>
+                      <p className="font-medium">{user.profile?.fullName}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>

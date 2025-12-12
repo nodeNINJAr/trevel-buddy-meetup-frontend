@@ -105,6 +105,8 @@ export default function AddTravelPlanPage() {
       ...data,
       startDate: new Date(data.startDate).toISOString(),
       endDate: new Date(data.endDate).toISOString(),
+      budgetMin:Number(data.budgetMin),
+      budgetMax:Number(data.budgetMax),
     };
 
     try {

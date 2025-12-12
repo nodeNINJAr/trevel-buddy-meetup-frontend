@@ -220,7 +220,7 @@ export default function ExplorePage() {
                 <Card key={plan.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
-                      <Badge variant={plan.status === 'active' ? 'default' : 'secondary'}>
+                      <Badge variant={plan.status === 'ACTIVE' ? 'default' : 'secondary'}>
                         {plan.status.toLowerCase()}
                       </Badge>
                       <Badge variant="outline">{plan.travelType}</Badge>

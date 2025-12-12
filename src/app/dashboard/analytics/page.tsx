@@ -286,7 +286,7 @@ export default function AnalyticsPage() {
                         <div className="text-sm text-muted-foreground">
                           {(
                             (item.plansCount /
-                              popularDestinations[0]?.plansCount) *
+                              popularDestinations[0]) *
                             100
                           ).toFixed(0)}
                           %

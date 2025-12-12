@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,23 +49,17 @@ const interestOptions = [
   "Sports",
 ];
 
-// ----- Zod Schema -----
-const travelPlanSchema = z.object({
-  destination: z.string().min(1, "Destination is required"),
-  country: z.string().min(1, "Country is required"),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"),
-
-  // Convert string -> number
-  budgetMin: z.coerce.number().optional(),
-  budgetMax: z.coerce.number().optional(),
-
-  travelType: z.string().min(1, "Travel type is required"),
-  interests: z.array(z.string()).min(1, "Select at least one interest"),
-  description: z.string().min(1, "Description is required"),
-});
-
-type TravelPlanFormValues = z.infer<typeof travelPlanSchema>;
+type TravelPlanFormValues = {
+  destination: string;
+  country: string;
+  startDate: string;
+  endDate: string;
+  budgetMin?: number;
+  budgetMax?: number;
+  travelType: string;
+  interests: string[];
+  description: string;
+};
 
 export default function AddTravelPlanPage() {
   const { user } = useAuth();
@@ -80,7 +74,6 @@ export default function AddTravelPlanPage() {
     setValue,
     formState: { errors },
   } = useForm<TravelPlanFormValues>({
-    resolver: zodResolver(travelPlanSchema),
     defaultValues: {
       destination: "",
       country: "",
@@ -99,57 +92,45 @@ export default function AddTravelPlanPage() {
   const toggleInterest = (interest: string) => {
     const current = selectedInterests || [];
     if (current.includes(interest)) {
-      setValue(
-        "interests",
-        current.filter((i) => i !== interest)
-      );
+      setValue("interests", current.filter((i) => i !== interest));
     } else {
       setValue("interests", [...current, interest]);
     }
   };
- 
 
-  // 
-const onSubmit = async (data: TravelPlanFormValues) => {
-  setIsLoading(true);
+  const onSubmit = async (data: TravelPlanFormValues) => {
+    setIsLoading(true);
 
-  // Convert date strings → ISO format
-  const payload = {
-    ...data,
-    startDate: new Date(data.startDate).toISOString(),
-    endDate: new Date(data.endDate).toISOString(),
+    const payload = {
+      ...data,
+      startDate: new Date(data.startDate).toISOString(),
+      endDate: new Date(data.endDate).toISOString(),
+    };
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed to create travel plan");
+
+      toast.success("Travel plan created successfully!");
+      router.push("/travel-plans");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Something went wrong!");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  console.log(payload);
-
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/travel/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(payload), // send formatted data
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      toast.error(result.message || "Failed to create travel plan");
-      return;
-    }
-
-    toast.success("Travel plan created successfully!");
-    router.push("/travel-plans");
-  } catch (err) {
-    console.error(err);
-    toast.error("Something went wrong!");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  // If user is not logged in
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -190,11 +171,12 @@ const onSubmit = async (data: TravelPlanFormValues) => {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Destination City *</Label>
-                  <Input placeholder="e.g., Bali" {...register("destination")} />
+                  <Input
+                    placeholder="e.g., Bali"
+                    {...register("destination", { required: "Destination is required" })}
+                  />
                   {errors.destination && (
-                    <p className="text-red-500 text-sm">
-                      {errors.destination.message}
-                    </p>
+                    <p className="text-red-500 text-sm">{errors.destination.message}</p>
                   )}
                 </div>
 
@@ -202,12 +184,10 @@ const onSubmit = async (data: TravelPlanFormValues) => {
                   <Label>Country *</Label>
                   <Input
                     placeholder="e.g., Indonesia"
-                    {...register("country")}
+                    {...register("country", { required: "Country is required" })}
                   />
                   {errors.country && (
-                    <p className="text-red-500 text-sm">
-                      {errors.country.message}
-                    </p>
+                    <p className="text-red-500 text-sm">{errors.country.message}</p>
                   )}
                 </div>
               </div>
@@ -216,21 +196,23 @@ const onSubmit = async (data: TravelPlanFormValues) => {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Start Date *</Label>
-                  <Input type="date" {...register("startDate")} />
+                  <Input
+                    type="date"
+                    {...register("startDate", { required: "Start date is required" })}
+                  />
                   {errors.startDate && (
-                    <p className="text-red-500 text-sm">
-                      {errors.startDate.message}
-                    </p>
+                    <p className="text-red-500 text-sm">{errors.startDate.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label>End Date *</Label>
-                  <Input type="date" {...register("endDate")} />
+                  <Input
+                    type="date"
+                    {...register("endDate", { required: "End date is required" })}
+                  />
                   {errors.endDate && (
-                    <p className="text-red-500 text-sm">
-                      {errors.endDate.message}
-                    </p>
+                    <p className="text-red-500 text-sm">{errors.endDate.message}</p>
                   )}
                 </div>
               </div>
@@ -254,6 +236,7 @@ const onSubmit = async (data: TravelPlanFormValues) => {
                 <Controller
                   control={control}
                   name="travelType"
+                  rules={{ required: "Travel type is required" }}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger>
@@ -270,9 +253,7 @@ const onSubmit = async (data: TravelPlanFormValues) => {
                   )}
                 />
                 {errors.travelType && (
-                  <p className="text-red-500 text-sm">
-                    {errors.travelType.message}
-                  </p>
+                  <p className="text-red-500 text-sm">{errors.travelType.message}</p>
                 )}
               </div>
 
@@ -282,16 +263,11 @@ const onSubmit = async (data: TravelPlanFormValues) => {
                 <p className="text-sm text-muted-foreground mb-3">
                   Select activities you're interested in
                 </p>
-
                 <div className="flex flex-wrap gap-2">
                   {interestOptions.map((interest) => (
                     <Badge
                       key={interest}
-                      variant={
-                        selectedInterests.includes(interest)
-                          ? "default"
-                          : "outline"
-                      }
+                      variant={selectedInterests.includes(interest) ? "default" : "outline"}
                       className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
                       onClick={() => toggleInterest(interest)}
                     >
@@ -302,34 +278,29 @@ const onSubmit = async (data: TravelPlanFormValues) => {
                     </Badge>
                   ))}
                 </div>
-
                 {errors.interests && (
-                  <p className="text-red-500 text-sm">
-                    {errors.interests.message}
-                  </p>
+                  <p className="text-red-500 text-sm">{errors.interests.message}</p>
                 )}
               </div>
 
               {/* Description */}
               <div className="space-y-2">
                 <Label>Description *</Label>
-                <Textarea rows={5} {...register("description")} />
+                <Textarea
+                  rows={5}
+                  {...register("description", { required: "Description is required" })}
+                />
                 {errors.description && (
-                  <p className="text-red-500 text-sm">
-                    {errors.description.message}
-                  </p>
+                  <p className="text-red-500 text-sm">{errors.description.message}</p>
                 )}
               </div>
 
               {/* Buttons */}
               <div className="flex gap-3 pt-4">
                 <Button type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Travel Plan
                 </Button>
-
                 <Button type="button" variant="outline" asChild>
                   <Link href="/travel-plans">Cancel</Link>
                 </Button>

@@ -1,6 +1,5 @@
-import { User, TravelPlan, Review } from '@/types';
 
-export const mockUsers: User[] = [
+export const mockUsers = [
   {
     id: 'user-1',
     email: 'sarah@example.com',
@@ -59,7 +58,7 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockTravelPlans: TravelPlan[] = [
+export const mockTravelPlans = [
   {
     id: 'plan-1',
     userId: 'user-1',
@@ -130,7 +129,7 @@ export const mockTravelPlans: TravelPlan[] = [
   },
 ];
 
-export const mockReviews: Review[] = [
+export const mockReviews = [
   {
     id: 'review-1',
     fromUserId: 'user-2',

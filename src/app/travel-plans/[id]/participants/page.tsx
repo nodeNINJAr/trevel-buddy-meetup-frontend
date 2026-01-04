@@ -18,7 +18,8 @@ import {
   UserX,
   Mail,
   Eye,
-  Star
+  Star,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -163,7 +164,11 @@ export default function ParticipantsPage() {
     setShowMessageDialog(true);
   };
 
-  if (loading) return <p className="text-center py-12">Loading participants...</p>;
+  if (loading) return <p className="text-center py-12">
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          </p>;
 
   const pendingRequests = participants.filter(p => p.status === 'PENDING');
   const acceptedRequests = participants.filter(p => p.status === 'ACCEPTED');
@@ -254,7 +259,7 @@ export default function ParticipantsPage() {
                   <TableRow>
                     <TableHead className="w-[300px]">Participant</TableHead>
                     <TableHead>Message</TableHead>
-                    <TableHead>Requested</TableHead>
+                    <TableHead>Requested At</TableHead>
                     <TableHead>Status</TableHead>
                     {planOwner && <TableHead>Action</TableHead>}
                     <TableHead>Reviews</TableHead>
@@ -268,8 +273,8 @@ export default function ParticipantsPage() {
                         <TableCell>
                           <Link href={`/profile/${request.friendId}`} className="flex items-center gap-3 group">
                             <div>
-                              <p className="font-medium group-hover:text-primary transition-colors">
-                                {request.friend?.userName}
+                              <p className="font-medium group-hover:text-primary transition-colors flex items-center gap-1 justify-center">
+                                {request.friend?.userName}<Eye className="h-4 w-4 text-amber-500" />
                               </p>
                               {request.friend?.profile?.verified && (
                                 <Badge variant="secondary" className="text-xs mt-0.5">
@@ -343,13 +348,14 @@ export default function ParticipantsPage() {
                           </TableCell>
                         )}
 
-                        <TableCell className="text-right">
+                        <TableCell className="text-left">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => router.push(`/reviews?userId=${request.friendId}&tripId=${params.id}`)}
                           >
                             <Star className="h-4 w-4" />
+                              See Ratings
                           </Button>
                         </TableCell>
                       </TableRow>

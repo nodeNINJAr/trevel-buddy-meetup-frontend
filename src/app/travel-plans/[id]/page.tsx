@@ -74,6 +74,7 @@ export default function TravelPlanDetailsPage() {
           credentials: 'include',
         });
         const data = await res.json();
+        console.log(data);
         if (!res.ok) throw new Error(data.message || 'Failed to fetch plan');
         setPlan(data.data);
       } catch (err: any) {
@@ -115,7 +116,10 @@ export default function TravelPlanDetailsPage() {
   if (!plan) return null;
 
   const isOwnPlan = authUser?.id === plan.userId;
+  const countFriendships = plan.friendships.filter(f => f.status === 'ACCEPTED').length;
 
+
+  // 
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">
@@ -173,7 +177,7 @@ export default function TravelPlanDetailsPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Participants</p>
-                      <p className="font-medium text-sm">{plan.friendships?.length || 0} joined</p>
+                      <p className="font-medium text-sm">{countFriendships} joined</p>
                     </div>
                   </div>
                 </div>
@@ -232,7 +236,8 @@ export default function TravelPlanDetailsPage() {
                     </div>
                   </div>
                 </Link>
-                     <>
+                    {
+                      isOwnPlan && ( <>
                       <Button
                         variant="outline"
                         className="w-full"
@@ -241,44 +246,47 @@ export default function TravelPlanDetailsPage() {
                         <Users className="h-4 w-4 mr-2" />
                         View Participants
                       </Button>
-                     </>
+                     </>)
+                    }
 
-                {!isOwnPlan && user ? (
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="w-full">
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Request to Join
-                      </Button>
-                    </DialogTrigger>
-
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Request to Join Trip</DialogTitle>
-                        <DialogDescription>
-                          Send a message to {plan.user?.profile?.fullName || plan.user?.userName} explaining why you'd be a great travel companion
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <Textarea
-                          placeholder={`Hi! I'm ${user?.profile?.fullName}. I would love to join your trip to ${plan.destination}. My interests: ${user?.profile?.travelInterests?.join(', ')}`}
-                          value={requestMessage}
-                          onChange={(e) => setRequestMessage(e.target.value)}
-                          rows={5}
-                        />
-                        <Button onClick={handleJoinRequest} className="w-full">
-                          Send Request
+                 <div className='mt-4'>
+                   {!isOwnPlan && user ? (
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full mt-4">
+                          <UserPlus className="mr-2 h-4 w-4" />
+                          Request to Join
                         </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                ) : !user ? (
-                  <Button asChild className="w-full">
-                    <Link href="/login">Login to Join</Link>
-                  </Button>
-                ) : (
-                  <Button disabled className="w-full">Your Plan</Button>
-                )}
+                      </DialogTrigger>
+
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Request to Join Trip</DialogTitle>
+                          <DialogDescription>
+                            Send a message to {plan.user?.profile?.fullName || plan.user?.userName} explaining why you'd be a great travel companion
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <Textarea
+                            placeholder={`Hi! I'm ${user?.profile?.fullName}. I would love to join your trip to ${plan.destination}. My interests: ${user?.profile?.travelInterests?.join(', ')}`}
+                            value={requestMessage}
+                            onChange={(e) => setRequestMessage(e.target.value)}
+                            rows={5}
+                          />
+                          <Button onClick={handleJoinRequest} className="w-full">
+                            Send Request
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  ) : !user ? (
+                    <Button asChild className="w-full">
+                      <Link href="/login">Login to Join</Link>
+                    </Button>
+                  ) : (
+                    <Button disabled className="w-full">Your Plan</Button>
+                  )}
+                  </div>   
               </CardContent>
             </Card>
           </div>

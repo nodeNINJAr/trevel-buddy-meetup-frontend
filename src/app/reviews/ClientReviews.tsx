@@ -1,12 +1,13 @@
-"use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import React, { useEffect, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Star, StarOff, Trash2, Edit3, MessageSquarePlus, Calendar, UserCheck, UserPlus, CheckCircle, XCircle } from "lucide-react";
+import { toast } from "sonner";
 
 type Review = {
   id: number;
@@ -38,11 +39,6 @@ type TravelPlanData = {
   };
 };
 
-type ToastType = {
-  message: string;
-  type: 'success' | 'error';
-};
-
 export default function ClientReviews() {
   const [travelPlanId, setTravelPlanId] = useState<string | null>(null);
   const [toUserId, setToUserId] = useState<string | null>(null);
@@ -55,10 +51,17 @@ export default function ClientReviews() {
   const [newComment, setNewComment] = useState("");
   const [newRating, setNewRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [toast, setToast] = useState<ToastType | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get base URL safely
+  const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+      return (window as any).NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || '';
+    }
+    return process.env.NEXT_PUBLIC_BASE_URL || '';
+  };
 
   useEffect(() => {
-    // Parse URL parameters from window location
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tripId = params.get("tripId");
@@ -67,28 +70,35 @@ export default function ClientReviews() {
       setToUserId(userId);
     }
   }, []);
-
+  console.log(error);
   useEffect(() => {
     if (!travelPlanId) return;
 
     const fetchTravelPlanData = async () => {
       try {
-        const baseUrl = typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_BASE_URL 
-          ? (window as any).NEXT_PUBLIC_BASE_URL 
-          : process.env.NEXT_PUBLIC_BASE_URL || '';
-          
+        setLoading(true);
+        setError(null);
+
+        const baseUrl = getBaseUrl();
+        if (!baseUrl) {
+          throw new Error("Base URL is not configured");
+        }
+
         const res = await fetch(
-          `${baseUrl}/api/v1/travel-plans/${travelPlanId}`,
+          `${baseUrl}/api/v1/travel/${travelPlanId}`,
           { credentials: "include" }
         );
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to fetch travel plan");
+        }
+
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to fetch travel plan");
-        
         const travelPlan: TravelPlanData = data.data;
         const userId = travelPlan.user.id;
         setCurrentUserId(userId);
 
-        // Separate reviews into "my reviews" and "reviews about me"
         const reviews = travelPlan.reviews || [];
         const myReviewsList = reviews.filter((r: Review) => r.fromUserId === userId);
         const aboutMeList = reviews.filter((r: Review) => r.toUserId === userId);
@@ -96,8 +106,9 @@ export default function ClientReviews() {
         setMyReviews(myReviewsList);
         setReviewsAboutMe(aboutMeList);
       } catch (err: any) {
-        console.error(err);
-        showToast(err.message || "Failed to fetch reviews", 'error');
+        console.error("Error fetching travel plan:", err);
+        setError(err.message || "Failed to fetch reviews");
+        toast.error(err.message || "Failed to fetch reviews");
       } finally {
         setLoading(false);
       }
@@ -106,32 +117,22 @@ export default function ClientReviews() {
     fetchTravelPlanData();
   }, [travelPlanId]);
 
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-  };
-
   const handleCreateReview = async () => {
     if (!newComment.trim()) {
-      showToast("Please enter a comment", 'error');
+      toast.error("Please enter a comment");
       return;
     }
     if (newRating === 0) {
-      showToast("Please select a rating", 'error');
+      toast.error("Please select a rating");
       return;
     }
-    
+
     try {
-      const baseUrl = typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_BASE_URL 
-        ? (window as any).NEXT_PUBLIC_BASE_URL 
-        : process.env.NEXT_PUBLIC_BASE_URL || '';
-        
+      const baseUrl = getBaseUrl();
+      if (!baseUrl) {
+        throw new Error("Base URL is not configured");
+      }
+
       const res = await fetch(
         `${baseUrl}/api/v1/reviews?toUserId=${toUserId}&travelPlanId=${travelPlanId}`,
         {
@@ -141,44 +142,55 @@ export default function ClientReviews() {
           body: JSON.stringify({ comment: newComment, rating: newRating }),
         }
       );
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to create review");
+      }
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to create review");
-      showToast("Review created successfully!", 'success');
+      toast.success("Review created successfully!");
       setMyReviews(prev => [...prev, data.data]);
       setShowDialog(false);
       setNewComment("");
       setNewRating(0);
       setHoveredRating(0);
     } catch (err: any) {
-      console.error(err);
-      showToast(err.message || "Failed to create review", 'error');
+      console.error("Error creating review:", err);
+      toast.error(err.message || "Failed to create review");
     }
   };
 
   const handleUpdateReview = async (reviewId: number) => {
     if (!newComment.trim()) {
-      showToast("Please enter a comment", 'error');
+      toast.error("Please enter a comment");
       return;
     }
     if (newRating === 0) {
-      showToast("Please select a rating", 'error');
+      toast.error("Please select a rating");
       return;
     }
-    
+
     try {
-      const baseUrl = typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_BASE_URL 
-        ? (window as any).NEXT_PUBLIC_BASE_URL 
-        : process.env.NEXT_PUBLIC_BASE_URL || '';
-        
+      const baseUrl = getBaseUrl();
+      if (!baseUrl) {
+        throw new Error("Base URL is not configured");
+      }
+
       const res = await fetch(`${baseUrl}/api/v1/reviews/${reviewId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ comment: newComment, rating: newRating }),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to update review");
+      }
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update review");
-      showToast("Review updated successfully!", 'success');
+      toast.success("Review updated successfully!");
       setMyReviews(prev => prev.map(r => (r.id === reviewId ? data.data : r)));
       setShowDialog(false);
       setEditingReview(null);
@@ -186,45 +198,56 @@ export default function ClientReviews() {
       setNewRating(0);
       setHoveredRating(0);
     } catch (err: any) {
-      console.error(err);
-      showToast(err.message || "Failed to update review", 'error');
+      console.error("Error updating review:", err);
+      toast.error(err.message || "Failed to update review");
     }
   };
 
   const handleDeleteReview = async (reviewId: number) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
-    
+
     try {
-      const baseUrl = typeof window !== 'undefined' && (window as any).NEXT_PUBLIC_BASE_URL 
-        ? (window as any).NEXT_PUBLIC_BASE_URL 
-        : process.env.NEXT_PUBLIC_BASE_URL || '';
-        
+      const baseUrl = getBaseUrl();
+      if (!baseUrl) {
+        throw new Error("Base URL is not configured");
+      }
+
       const res = await fetch(`${baseUrl}/api/v1/reviews/${reviewId}`, {
         method: "DELETE",
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Failed to delete review");
-      showToast("Review deleted successfully!", 'success');
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to delete review");
+      }
+
+      toast.success("Review deleted successfully!");
       setMyReviews(prev => prev.filter(r => r.id !== reviewId));
     } catch (err: any) {
-      console.error(err);
-      showToast(err.message || "Failed to delete review", 'error');
+      console.error("Error deleting review:", err);
+      toast.error(err.message || "Failed to delete review");
     }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { 
-      year: "numeric", 
-      month: "short", 
-      day: "numeric" 
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    } catch (err) {
+      console.error("Error formatting date:", err);
+      return "Invalid date";
+    }
   };
 
   const renderStars = (rating: number, editable = false, size = "md") => {
     const sizeClass = size === "lg" ? "h-8 w-8" : size === "md" ? "h-5 w-5" : "h-4 w-4";
     const displayRating = editable && hoveredRating > 0 ? hoveredRating : rating;
-    
+
     return (
       <div className="flex gap-1">
         {[...Array(5)].map((_, i) => (
@@ -247,7 +270,7 @@ export default function ClientReviews() {
   };
 
   const renderReviewCard = (review: Review, isMyReview: boolean) => (
-    <Card 
+    <Card
       key={review.id}
       className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur transform hover:scale-[1.01]"
     >
@@ -255,7 +278,7 @@ export default function ClientReviews() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-3">
-              <div className={`rounded-full ${isMyReview ? 'bg-gradient-to-br from-blue-100 to-cyan-100' : 'bg-gradient-to-br from-indigo-100 to-purple-100'} p-2`}>
+              <div className={`rounded-full ${isMyReview ? 'bg-linear-to-br from-blue-100 to-cyan-100' : 'bg-gradient-to-br from-indigo-100 to-purple-100'} p-2`}>
                 {isMyReview ? (
                   <UserPlus className="h-5 w-5 text-blue-600" />
                 ) : (
@@ -303,9 +326,9 @@ export default function ClientReviews() {
               >
                 <Edit3 className="h-4 w-4" />
               </Button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <Button
+                size="sm"
+                variant="ghost"
                 onClick={() => handleDeleteReview(review.id)}
                 className="hover:bg-red-50 hover:text-red-600 transition-all duration-200"
               >
@@ -316,24 +339,44 @@ export default function ClientReviews() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className={`${isMyReview ? 'bg-gradient-to-br from-blue-50 to-cyan-50/30' : 'bg-gradient-to-br from-gray-50 to-indigo-50/30'} rounded-lg p-4 border border-gray-100`}>
+        <div className={`${isMyReview ? 'bg-linear-to-br from-blue-50 to-cyan-50/30' : 'bg-linear-to-br from-gray-50 to-indigo-50/30'} rounded-lg p-4 border border-gray-100`}>
           <p className="text-gray-700 leading-relaxed">{review.comment}</p>
         </div>
       </CardContent>
     </Card>
   );
 
-  const avgMyRating = myReviews.length > 0 
+  const avgMyRating = myReviews.length > 0
     ? (myReviews.reduce((acc, r) => acc + r.rating, 0) / myReviews.length).toFixed(1)
     : "0.0";
 
-  const avgAboutMeRating = reviewsAboutMe.length > 0 
+  const avgAboutMeRating = reviewsAboutMe.length > 0
     ? (reviewsAboutMe.reduce((acc, r) => acc + r.rating, 0) / reviewsAboutMe.length).toFixed(1)
     : "0.0";
 
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="py-12 text-center">
+            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 font-semibold text-lg">Error Loading Reviews</p>
+            <p className="text-muted-foreground mt-2">{error}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-red-500 hover:bg-red-600 text-white"
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!travelPlanId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-red-100 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <p className="text-red-600 font-semibold text-lg">Invalid URL parameters</p>
@@ -346,7 +389,7 @@ export default function ClientReviews() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-lg font-medium text-gray-700">Loading reviews...</p>
@@ -356,44 +399,21 @@ export default function ClientReviews() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Toast Notification */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top">
-          <Alert className={`${toast.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} shadow-lg`}>
-            <div className="flex items-center gap-2">
-              {toast.type === 'success' ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-600" />
-              )}
-              <AlertDescription className={toast.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-                {toast.message}
-              </AlertDescription>
-            </div>
-          </Alert>
-        </div>
-      )}
-
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <Button 
-          variant="ghost" 
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              window.history.back();
-            }
-          }}
+        <Button
+          variant="ghost"
+          onClick={() => window.history.back()}
           className="mb-6 hover:bg-white/60 transition-all duration-200"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Participants
         </Button>
 
-        {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 Reviews & Ratings
               </h1>
               <p className="text-muted-foreground">
@@ -408,7 +428,7 @@ export default function ClientReviews() {
                 setNewRating(0);
                 setHoveredRating(0);
               }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               size="lg"
             >
               <MessageSquarePlus className="mr-2 h-5 w-5" />
@@ -417,9 +437,8 @@ export default function ClientReviews() {
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card className="border-none shadow-xl bg-gradient-to-br from-white to-blue-50/30 backdrop-blur">
+          <Card className="border-none shadow-xl bg-linear-to-br from-white to-blue-50/30 backdrop-blur">
             <CardContent className="py-6">
               <div className="text-center space-y-3">
                 <div className="flex items-center justify-center gap-2">
@@ -439,7 +458,7 @@ export default function ClientReviews() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-xl bg-gradient-to-br from-white to-purple-50/30 backdrop-blur">
+          <Card className="border-none shadow-xl bg-linear-to-br from-white to-purple-50/30 backdrop-blur">
             <CardContent className="py-6">
               <div className="text-center space-y-3">
                 <div className="flex items-center justify-center gap-2">
@@ -460,7 +479,6 @@ export default function ClientReviews() {
           </Card>
         </div>
 
-        {/* Tabs for Reviews */}
         <Tabs defaultValue="my-reviews" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="my-reviews" className="gap-2">
@@ -494,7 +512,7 @@ export default function ClientReviews() {
                           setNewRating(0);
                           setHoveredRating(0);
                         }}
-                        className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                        className="bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
                       >
                         <MessageSquarePlus className="mr-2 h-4 w-4" />
                         Write First Review
@@ -531,11 +549,10 @@ export default function ClientReviews() {
           </TabsContent>
         </Tabs>
 
-        {/* Create / Edit Dialog */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent className="sm:max-w-[550px] bg-gradient-to-br from-white to-indigo-50/30">
+          <DialogContent className="sm:max-w-[550px] bg-linear-to-br from-white to-indigo-50/30">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <DialogTitle className="text-2xl font-bold bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 {editingReview ? "Edit Your Review" : "Write a Review"}
               </DialogTitle>
               <DialogDescription className="text-base">
@@ -554,7 +571,7 @@ export default function ClientReviews() {
                   )}
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Your Review</label>
                 <textarea
@@ -564,14 +581,14 @@ export default function ClientReviews() {
                   onChange={e => setNewComment(e.target.value)}
                 />
               </div>
-              
+
               <div className="flex gap-3 pt-2">
                 <Button
                   onClick={() => {
                     if (editingReview) handleUpdateReview(editingReview.id);
                     else handleCreateReview();
                   }}
-                  className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                   size="lg"
                 >
                   {editingReview ? "Update Review" : "Submit Review"}

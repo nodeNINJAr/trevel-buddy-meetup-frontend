@@ -34,19 +34,16 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { TravelPlan, User } from '@/types';
 
-
-// 
 export default function TravelPlanDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user: authUser } = useAuth(); // Keep useAuth
-  const [user, setUser] = useState<User | null>(null); // Full profile from API
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [plan, setPlan] = useState<TravelPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestMessage, setRequestMessage] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Fetch logged-in user profile using userId from useAuth
   useEffect(() => {
     if (!authUser?.id) return;
     const fetchUserProfile = async () => {
@@ -56,7 +53,7 @@ export default function TravelPlanDetailsPage() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch profile');
-        setUser(data.data); // store full user profile
+        setUser(data.data);
       } catch (err: any) {
         console.error(err);
         toast.error(err.message || 'Failed to fetch profile');
@@ -65,7 +62,6 @@ export default function TravelPlanDetailsPage() {
     fetchUserProfile();
   }, [authUser]);
 
-  // Fetch travel plan
   useEffect(() => {
     if (!params.id) return;
     const fetchPlan = async () => {
@@ -74,7 +70,6 @@ export default function TravelPlanDetailsPage() {
           credentials: 'include',
         });
         const data = await res.json();
-        console.log(data);
         if (!res.ok) throw new Error(data.message || 'Failed to fetch plan');
         setPlan(data.data);
       } catch (err: any) {
@@ -116,10 +111,8 @@ export default function TravelPlanDetailsPage() {
   if (!plan) return null;
 
   const isOwnPlan = authUser?.id === plan.userId;
-  const countFriendships = plan.friendships.filter(f => f.status === 'ACCEPTED').length;
+  const countFriendships = plan.friendships?.filter(f => f.status === 'ACCEPTED')?.length || 0;
 
-
-  // 
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8">
@@ -192,7 +185,7 @@ export default function TravelPlanDetailsPage() {
                 <div>
                   <h3 className="font-semibold text-lg mb-3">Activities & Interests</h3>
                   <div className="flex flex-wrap gap-2">
-                    {plan.interests.map((interest, i) => (
+                    {plan.interests?.map((interest, i) => (
                       <Badge key={i} variant="secondary">{interest}</Badge>
                     ))}
                   </div>
@@ -206,7 +199,6 @@ export default function TravelPlanDetailsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Hosted by</CardTitle>
-               
               </CardHeader>
               <CardContent>
                 <Link href={`/profile/${plan.user?.id}`} className="block">
@@ -236,21 +228,18 @@ export default function TravelPlanDetailsPage() {
                     </div>
                   </div>
                 </Link>
-                    {
-                      isOwnPlan && ( <>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => router.push(`/travel-plans/${params.id}/participants`)}
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        View Participants
-                      </Button>
-                     </>)
-                    }
-
-                 <div className='mt-4'>
-                   {!isOwnPlan && user ? (
+                {isOwnPlan && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => router.push(`/travel-plans/${params.id}/participants`)}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    View Participants
+                  </Button>
+                )}
+                <div className='mt-4'>
+                  {!isOwnPlan && user ? (
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                       <DialogTrigger asChild>
                         <Button className="w-full mt-4">
@@ -258,7 +247,6 @@ export default function TravelPlanDetailsPage() {
                           Request to Join
                         </Button>
                       </DialogTrigger>
-
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Request to Join Trip</DialogTitle>
@@ -286,7 +274,7 @@ export default function TravelPlanDetailsPage() {
                   ) : (
                     <Button disabled className="w-full">Your Plan</Button>
                   )}
-                  </div>   
+                </div>
               </CardContent>
             </Card>
           </div>

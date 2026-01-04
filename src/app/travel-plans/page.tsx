@@ -163,11 +163,12 @@ export default function TravelPlansPage() {
                     </Badge>
 
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/travel-plans/${plan.id}/edit`}>
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                      </Button>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/travel-plans/${plan.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                        </Button>
+
 
                       {/* Delete Button */}
                       <AlertDialog>

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import {
   Plane,
   Users,
@@ -23,7 +23,7 @@ import {
   BookOpen,
   Calendar,
 } from 'lucide-react';
-import { popularDestinations, testimonials, mockUsers } from '@/lib/mockData';
+import { popularDestinations, testimonials, mockUsers } from '../lib/mockData';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 

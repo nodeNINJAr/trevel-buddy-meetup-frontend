@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plane, Clock, Mail, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { Plane, Mail, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function ComingSoonPage() {
@@ -46,7 +46,7 @@ export default function ComingSoonPage() {
     return () => clearInterval(interval);
   }, [targetDate]);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (email) {
       setIsSubscribed(true);

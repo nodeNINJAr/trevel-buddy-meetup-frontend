@@ -40,6 +40,20 @@ export const LoggedOutLinks: React.FC<LinksProps> = ({ pathname }) => (
     >
       Find Travel Buddy
     </Link>
+
+          <Link 
+      href="/about"
+      className={`transition-colors hover:text-primary relative ${pathname === "/about" ? "text-primary font-medium" : "text-muted-foreground"}`}
+    >
+      About
+    </Link>
+
+          <Link 
+      href="/contact"
+      className={`transition-colors hover:text-primary relative ${pathname === "/contact" ? "text-primary font-medium" : "text-muted-foreground"}`}
+    >
+      Contact
+    </Link>
   </>
 );
 
@@ -57,7 +71,7 @@ export const UserLinks: React.FC<LinksProps> = ({ pathname }) => (
     >
       My Plans
     </Link>
-    <Link 
+    {/* <Link 
       href="/messages"
       className={`transition-colors hover:text-primary relative ${pathname === "/messages" ? "text-primary font-medium" : "text-muted-foreground"}`}
     >
@@ -65,7 +79,22 @@ export const UserLinks: React.FC<LinksProps> = ({ pathname }) => (
       <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs" variant="destructive">
         3
       </Badge>
+    </Link> */}
+    {/*  */}
+      <Link 
+      href="/about"
+      className={`transition-colors hover:text-primary relative ${pathname === "/about" ? "text-primary font-medium" : "text-muted-foreground"}`}
+    >
+      About
     </Link>
+
+          <Link 
+      href="/contact"
+      className={`transition-colors hover:text-primary relative ${pathname === "/contact" ? "text-primary font-medium" : "text-muted-foreground"}`}
+    >
+      Contact
+    </Link>
+    
   </>
 );
 

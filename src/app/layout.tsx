@@ -32,7 +32,7 @@ export default function RootLayout({
               data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
             />
 
-         <ThemeProvider>  
+         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>  
             <AuthProvider>
               {/* navbar */}
               <Navbar/>

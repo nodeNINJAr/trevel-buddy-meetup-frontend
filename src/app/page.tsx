@@ -18,7 +18,6 @@ import {
   Heart,
   TrendingUp,
   Award,
-  LogIn,
   ChevronLeft,
   ChevronRight,
   BookOpen,
@@ -496,7 +495,7 @@ export default function HomePage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">"{testimonial.text}"</p>
+                  <p className="text-muted-foreground">&quot;{testimonial.text}&quot;</p>
                 </CardContent>
               </Card>
             ))}
@@ -505,7 +504,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+      <section className="py-20 bg-linear-to-r from-blue-600 to-indigo-600 text-white">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
             <TrendingUp className="h-16 w-16 mx-auto" />
@@ -520,7 +519,7 @@ export default function HomePage() {
                   Sign Up Now
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="text-lg h-12 px-8 border-white text-white hover:bg-white/10">
+              <Button size="lg" variant="outline" asChild className="text-lg h-12 px-8 border-white text-white bg-white/10">
                 <Link href="/explore">Browse Travelers</Link>
               </Button>
             </div>

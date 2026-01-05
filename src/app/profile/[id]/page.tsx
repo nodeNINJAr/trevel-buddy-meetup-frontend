@@ -204,7 +204,7 @@ export default function ProfilePage() {
     { value: "OTHER", label: "Other" },
     { value: "PREFER_NOT_TO_SAY", label: "Prefer not to say" },
   ];
-
+   console.log("profile user-->", profileUser);
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="container mx-auto px-4 py-8 max-w-4xl">

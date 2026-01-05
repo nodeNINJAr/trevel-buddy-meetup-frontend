@@ -71,6 +71,14 @@ export const UserLinks: React.FC<LinksProps> = ({ pathname }) => (
     >
       My Plans
     </Link>
+
+    {/*  */}
+      <Link 
+      href="/find-buddy"
+        className={`transition-colors hover:text-primary ${pathname === "/find-buddy" ? "text-primary font-medium" : "text-muted-foreground"}`}
+       >
+      Find Travel Buddy
+    </Link>
     {/* <Link 
       href="/messages"
       className={`transition-colors hover:text-primary relative ${pathname === "/messages" ? "text-primary font-medium" : "text-muted-foreground"}`}

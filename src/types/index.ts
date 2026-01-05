@@ -12,6 +12,10 @@ export interface UserProfile {
   rating?: number;
   reviewCount?: number;
   verified?: boolean;
+  dateOfBirth?: string;
+  gender:string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface User {
@@ -22,6 +26,8 @@ export interface User {
   image?: string;
   role: UserRole;
   email: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface TravelPlan {

@@ -86,7 +86,8 @@ const userLinks: SidebarLink[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/travel-plans", label: "My Plans", icon: Map, dataTour: "plans" },
   { href: "/messages", label: "Messages", icon: MessageSquare, dataTour: "messages" },
-  { href: "/profile/me", label: "Profile", icon: Users, dataTour: "profile" },
+  { href: "/participant", label: "My Participant", icon: Users, dataTour: "participant" },
+  // { href: "/profile/me", label: "Profile", icon: Users, dataTour: "profile" },
 ];
 
 const adminLinks: SidebarLink[] = [

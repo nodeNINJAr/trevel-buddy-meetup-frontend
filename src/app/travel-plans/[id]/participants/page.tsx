@@ -18,8 +18,7 @@ import {
   UserX,
   Mail,
   Eye,
-  Star,
-  Loader2
+  Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {

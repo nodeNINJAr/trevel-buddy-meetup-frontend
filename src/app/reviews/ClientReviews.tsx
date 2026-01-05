@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Star, StarOff, Trash2, Edit3, MessageSquarePlus, Calendar, UserCheck, UserPlus, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Star, StarOff, Trash2, Edit3, MessageSquarePlus, Calendar, UserCheck, UserPlus, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Review = {
   id: number;
@@ -23,16 +24,25 @@ type Review = {
     id: number;
     userName: string;
     email: string;
+     profile?: {
+        fullName: string;
+        
+    }
   };
   toUser?: {
     id: number;
     userName: string;
     email: string;
+    profile?: {
+        fullName: string;
+
+    }
   };
 };
 
 type TravelPlanData = {
   reviews: Review[];
+  userId: number;
   user: {
     id: number;
     userName: string;
@@ -42,7 +52,9 @@ type TravelPlanData = {
 export default function ClientReviews() {
   const [travelPlanId, setTravelPlanId] = useState<string | null>(null);
   const [toUserId, setToUserId] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  // const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const { user: authUser, isLoading: sessionLoading } = useAuth();
+  const currentUserId = authUser?.id || null;
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [reviewsAboutMe, setReviewsAboutMe] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +82,6 @@ export default function ClientReviews() {
       setToUserId(userId);
     }
   }, []);
-  console.log(error);
   useEffect(() => {
     if (!travelPlanId) return;
 
@@ -96,15 +107,25 @@ export default function ClientReviews() {
 
         const data = await res.json();
         const travelPlan: TravelPlanData = data.data;
-        const userId = travelPlan.user.id;
-        setCurrentUserId(userId);
+        // const userId = travelPlan.userId;
+        // setCurrentUserId(userId);
+        const r = await fetch(
+          `${baseUrl}/api/v1/reviews/my`,
+          { credentials: "include" }
+        );
 
-        const reviews = travelPlan.reviews || [];
-        const myReviewsList = reviews.filter((r: Review) => r.fromUserId === userId);
-        const aboutMeList = reviews.filter((r: Review) => r.toUserId === userId);
+        if (!r.ok) {
+          const errorData = await r.json().catch(() => ({}));
+          throw new Error(errorData.message || "Failed to fetch my reviews");
+        }
 
+        const reviewsData = await r.json();
+        const reviews = reviewsData.data || [];
+        const myReviewsList = reviews.filter((r: Review) => r.fromUserId === currentUserId);
+        const aboutMeList = reviews.filter((r: Review) => r.toUserId === currentUserId);
         setMyReviews(myReviewsList);
         setReviewsAboutMe(aboutMeList);
+        console.log(reviews, myReviewsList, aboutMeList, currentUserId, travelPlan.userId);
       } catch (err: any) {
         console.error("Error fetching travel plan:", err);
         setError(err.message || "Failed to fetch reviews");
@@ -115,7 +136,7 @@ export default function ClientReviews() {
     };
 
     fetchTravelPlanData();
-  }, [travelPlanId]);
+  }, [travelPlanId, currentUserId]);
 
   const handleCreateReview = async () => {
     if (!newComment.trim()) {
@@ -288,9 +309,9 @@ export default function ClientReviews() {
               <div>
                 <p className="font-semibold text-gray-900">
                   {isMyReview ? (
-                    <>Review for <span className="text-indigo-600">{review.toUser?.userName || `User #${review.toUserId}`}</span></>
+                    <>Review for <span className="text-indigo-600">{review.toUser?.profile?.fullName || `User #${review.toUserId}`}</span></>
                   ) : (
-                    <>Review from <span className="text-purple-600">{review.fromUser?.userName || `User #${review.fromUserId}`}</span></>
+                    <>Review from <span className="text-purple-600">{review.fromUser?.profile?.fullName || `User #${review.fromUserId}`}</span></>
                   )}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

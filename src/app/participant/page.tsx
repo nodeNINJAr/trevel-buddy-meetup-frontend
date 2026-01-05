@@ -12,11 +12,11 @@ import { ArrowLeft, Users, Check, Clock, X, Eye, Star, MapPin, Calendar } from '
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-type ParticipationStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+type ParticipationStatus = 'PENDING' | 'ACCEPTED' | 'BLOCKED';
 
 type TravelParticipation = {
   id: number;
-  travelPlan: {
+  trip: {
     id: number;
     destination: string;
     country: string;
@@ -28,6 +28,7 @@ type TravelParticipation = {
   createdAt: string;
   updatedAt: string;
   message?: string;
+  userId: number;
 };
 
 type Stats = {
@@ -48,8 +49,9 @@ export default function TravelParticipationPage() {
   const fetchParticipations = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/participations/my`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/stats/participation/my`, {
         credentials: 'include',
+        cache: 'no-store',  
       });
 
       if (!res.ok) {
@@ -58,15 +60,9 @@ export default function TravelParticipationPage() {
       }
 
       const data = await res.json();
-      setParticipations(data.data);
+      setParticipations(data.data.data || []);
 
-      // Calculate stats
-      const total = data.data.length;
-      const accepted = data.data.filter((p: TravelParticipation) => p.status === 'ACCEPTED').length;
-      const pending = data.data.filter((p: TravelParticipation) => p.status === 'PENDING').length;
-      const rejected = data.data.filter((p: TravelParticipation) => p.status === 'REJECTED').length;
-
-      setStats({ total, accepted, pending, rejected });
+      setStats({ total: data.data.totalParticipate, accepted: data.data.acceptedParticipate, pending: data.data.pendingParticipate, rejected: data.data.rejectedParticipate });
     } catch (err: any) {
       console.error("Error fetching participations:", err);
       toast.error(err.message || "Failed to load your travel participations");
@@ -110,7 +106,7 @@ export default function TravelParticipationPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground mb-4">Please log in to view your travel participations</p>
@@ -125,7 +121,7 @@ export default function TravelParticipationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-lg font-medium text-gray-700">Loading your travel participations...</p>
@@ -135,7 +131,7 @@ export default function TravelParticipationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-8">
         <Button variant="ghost" onClick={() => router.back()} className="mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -233,7 +229,8 @@ export default function TravelParticipationPage() {
                       <TableHead>Country</TableHead>
                       <TableHead>Dates</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>View Trip</TableHead>
+                      <TableHead>Reviews</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -242,16 +239,16 @@ export default function TravelParticipationPage() {
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
-                            {participation.travelPlan.destination}
+                            {participation.trip.destination}
                           </div>
                         </TableCell>
-                        <TableCell>{participation.travelPlan.country}</TableCell>
+                        <TableCell>{participation.trip.country}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {new Date(participation.travelPlan.startDate).toLocaleDateString()} -
-                              {new Date(participation.travelPlan.endDate).toLocaleDateString()}
+                              {new Date(participation.trip.startDate).toLocaleDateString()} -
+                              {new Date(participation.trip.endDate).toLocaleDateString()}
                             </span>
                           </div>
                         </TableCell>
@@ -272,7 +269,7 @@ export default function TravelParticipationPage() {
                             size="sm"
                             asChild
                           >
-                            <Link href={`/travel-plans/${participation.travelPlan.id}`}>
+                            <Link href={`/travel-plans/${participation.trip.id}`}>
                               <Eye className="h-4 w-4 mr-2" />
                               View
                             </Link>
@@ -284,7 +281,7 @@ export default function TravelParticipationPage() {
                               size="sm"
                               asChild
                             >
-                              <Link href={`/reviews?tripId=${participation.travelPlan.id}&userId=${participation.travelPlan.userId}`}>
+                              <Link href={`/reviews?tripId=${participation.trip.id}&userId=${participation.userId}`}>
                                 <Star className="h-4 w-4 mr-2" />
                                 Review
                               </Link>

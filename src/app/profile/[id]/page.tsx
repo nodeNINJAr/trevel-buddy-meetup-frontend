@@ -67,7 +67,6 @@ export default function ProfilePage() {
         if (!profileRes.ok) throw new Error("Failed to fetch profile");
         const profileData = await profileRes.json();
         setProfileUser(profileData.data);
-         console.log(profileData);
         // Initialize form for editing
         if (isOwnProfile && profileData.data?.profile) {
           reset({
@@ -91,7 +90,7 @@ export default function ProfilePage() {
         }
 
         // Fetch reviews
-        const reviewsRes = await fetch(`${BASE_URL}/api/v1/reviews/user/${userId}`, { credentials: "include" });
+        const reviewsRes = await fetch(`${BASE_URL}/api/v1/reviews/my/${userId}`, { credentials: "include" });
         if (reviewsRes.ok) {
           const reviewsData = await reviewsRes.json();
           setReviews(reviewsData.data || []);
